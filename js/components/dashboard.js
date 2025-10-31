@@ -298,6 +298,14 @@ export default class DashboardComponent {
                                 </div>
                             </div>
                         ` : ''}
+
+                        ${isCreator ? `
+                            <div class="exchange-actions">
+                                <button onclick="window.location.hash='#/exchange/${exchange.id}'" class="btn-primary">
+                                    ⚙️ Manage Exchange
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }
