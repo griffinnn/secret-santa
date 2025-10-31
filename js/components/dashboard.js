@@ -107,9 +107,26 @@ export default class DashboardComponent {
     }
 
     /**
+     * Set active tab
+     */
+    setActiveTab(index) {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach((btn, i) => {
+            if (i === index) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    }
+
+    /**
      * Show assignments tab
      */
     async showAssignmentsTab() {
+        // Update active tab
+        this.setActiveTab(0);
+        
         const contentArea = document.getElementById('dashboard-content');
         if (!contentArea) return;
 
@@ -200,6 +217,9 @@ export default class DashboardComponent {
      * Show exchanges tab
      */
     async showExchangesTab() {
+        // Update active tab
+        this.setActiveTab(1);
+        
         const contentArea = document.getElementById('dashboard-content');
         if (!contentArea) return;
 
@@ -329,6 +349,9 @@ export default class DashboardComponent {
      * Show browse available exchanges tab
      */
     async showBrowseTab() {
+        // Update active tab
+        this.setActiveTab(2);
+        
         const contentArea = document.getElementById('dashboard-content');
         if (!contentArea) return;
 
@@ -488,6 +511,9 @@ export default class DashboardComponent {
      * Show create exchange tab
      */
     async showCreateTab() {
+        // Update active tab
+        this.setActiveTab(3);
+        
         const contentArea = document.getElementById('dashboard-content');
         if (!contentArea) return;
 
@@ -612,6 +638,9 @@ export default class DashboardComponent {
     }
 
     async showProfileTab() {
+        // Update active tab
+        this.setActiveTab(4);
+        
         const contentArea = document.getElementById('dashboard-content');
         if (!contentArea) return;
 

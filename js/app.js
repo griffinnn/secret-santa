@@ -588,15 +588,182 @@ class SecretSantaApp {
     }
     
     
-    renderExchangeDetail() {
+    async renderExchangeDetail() {
         const content = document.getElementById('main-content');
-        content.innerHTML = `
-            <div class="card">
-                <h2>🎁 Exchange Details</h2>
-                <p>Exchange details will be loaded here.</p>
-                <button onclick="history.back()">Go Back</button>
-            </div>
-        `;
+        
+        // Get exchange ID from URL hash (#/exchange/123)
+        const exchangeId = window.location.hash.split('/')[2];
+        
+        if (!exchangeId) {
+            this.showMessage('Exchange ID not found', 'error');
+            window.location.hash = '#/dashboard';
+            return;
+        }
+
+        if (!this.currentUser) {
+            this.showMessage('Please log in first', 'error');
+            window.location.hash = '#/login';
+            return;
+        }
+
+        this.showLoading('Loading exchange...');
+
+        try {
+            const Exchange = (await import('./models/Exchange.js')).default;
+            const User = (await import('./models/User.js')).default;
+            
+            const exchange = await Exchange.findById(exchangeId);
+            
+            if (!exchange) {
+                throw new Error('Exchange not found');
+            }
+
+            // Check if user is the creator
+            if (exchange.createdBy !== this.currentUser.id) {
+                this.showMessage('Only the exchange creator can manage this exchange', 'error');
+                window.location.hash = '#/dashboard';
+                return;
+            }
+
+            const participants = await exchange.getParticipants();
+            const pendingParticipants = await exchange.getPendingParticipants();
+            const stats = await exchange.getStats();
+
+            content.innerHTML = `
+                <div class="exchange-management">
+                    <div class="exchange-header">
+                        <button onclick="window.location.hash='#/dashboard'" class="btn-back">← Back to Dashboard</button>
+                        <h2>🎁 Manage Exchange</h2>
+                    </div>
+
+                    <div class="card">
+                        <h3>${exchange.name}</h3>
+                        <div class="exchange-stats">
+                            <p><strong>Budget:</strong> ${stats.budget}</p>
+                            <p><strong>Participants:</strong> ${stats.participantCount}</p>
+                            <p><strong>Status:</strong> ${exchange.assignmentsGenerated ? '✅ Assigned' : '⏳ Pending'}</p>
+                            <p><strong>Created:</strong> ${stats.createdDate}</p>
+                        </div>
+                    </div>
+
+                    ${pendingParticipants.length > 0 ? `
+                        <div class="card">
+                            <h3>⏳ Pending Join Requests (${pendingParticipants.length})</h3>
+                            <div class="pending-list">
+                                ${pendingParticipants.map(p => `
+                                    <div class="pending-item">
+                                        <div class="pending-user">
+                                            <div class="avatar">${p.user.getInitials()}</div>
+                                            <div>
+                                                <strong>${p.user.name}</strong>
+                                                <p>${p.user.email}</p>
+                                            </div>
+                                        </div>
+                                        <div class="pending-actions">
+                                            <button onclick="window.secretSantaApp.approveParticipant('${exchange.id}', '${p.user.id}')" 
+                                                    class="btn-small btn-success">✅ Approve</button>
+                                            <button onclick="window.secretSantaApp.declineParticipant('${exchange.id}', '${p.user.id}')" 
+                                                    class="btn-small btn-danger">❌ Decline</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="card">
+                        <h3>👥 Participants (${participants.length})</h3>
+                        <div class="participants-grid">
+                            ${participants.map(p => `
+                                <div class="participant-card">
+                                    <div class="avatar">${p.getInitials()}</div>
+                                    <strong>${p.name}</strong>
+                                    <p>${p.email}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    ${exchange.canGenerateAssignments() && !exchange.assignmentsGenerated ? `
+                        <div class="card">
+                            <h3>🎯 Generate Assignments</h3>
+                            <p>You have enough participants to generate Secret Santa assignments!</p>
+                            <button onclick="window.secretSantaApp.confirmGenerateAssignments('${exchange.id}')" 
+                                    class="btn-primary btn-large">
+                                🎁 Generate Assignments
+                            </button>
+                        </div>
+                    ` : exchange.assignmentsGenerated ? `
+                        <div class="card success">
+                            <h3>✅ Assignments Generated</h3>
+                            <p>Secret Santa assignments have been created! Participants can now view their assignments.</p>
+                        </div>
+                    ` : `
+                        <div class="card info">
+                            <h3>ℹ️ Need More Participants</h3>
+                            <p>You need at least 3 participants to generate assignments.</p>
+                        </div>
+                    `}
+                </div>
+            `;
+
+            this.hideLoading();
+
+        } catch (error) {
+            console.error('Error loading exchange:', error);
+            this.showMessage('Failed to load exchange: ' + error.message, 'error');
+            this.hideLoading();
+            window.location.hash = '#/dashboard';
+        }
+    }
+
+    async approveParticipant(exchangeId, userId) {
+        try {
+            this.showLoading('Approving participant...');
+            const Exchange = (await import('./models/Exchange.js')).default;
+            const exchange = await Exchange.findById(exchangeId);
+            await exchange.approveParticipant(userId);
+            this.showMessage('Participant approved!', 'success');
+            this.renderExchangeDetail(); // Reload
+        } catch (error) {
+            console.error('Error approving participant:', error);
+            this.showMessage('Failed to approve participant', 'error');
+            this.hideLoading();
+        }
+    }
+
+    async declineParticipant(exchangeId, userId) {
+        try {
+            this.showLoading('Declining participant...');
+            const Exchange = (await import('./models/Exchange.js')).default;
+            const exchange = await Exchange.findById(exchangeId);
+            await exchange.declineParticipant(userId);
+            this.showMessage('Participant declined', 'info');
+            this.renderExchangeDetail(); // Reload
+        } catch (error) {
+            console.error('Error declining participant:', error);
+            this.showMessage('Failed to decline participant', 'error');
+            this.hideLoading();
+        }
+    }
+
+    async confirmGenerateAssignments(exchangeId) {
+        if (!confirm('Are you sure you want to generate Secret Santa assignments? This cannot be undone!')) {
+            return;
+        }
+
+        try {
+            this.showLoading('Generating assignments...');
+            const Exchange = (await import('./models/Exchange.js')).default;
+            const exchange = await Exchange.findById(exchangeId);
+            await exchange.generateAssignments();
+            this.showMessage('Assignments generated successfully! 🎉', 'success');
+            this.renderExchangeDetail(); // Reload
+        } catch (error) {
+            console.error('Error generating assignments:', error);
+            this.showMessage('Failed to generate assignments: ' + error.message, 'error');
+            this.hideLoading();
+        }
     }
     
     render404() {
