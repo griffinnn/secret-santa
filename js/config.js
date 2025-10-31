@@ -4,5 +4,5 @@
  */
 
 window.ENV = window.ENV || {
-  API_URL: 'http://localhost:3001/api'
+  API_URL: 'https://secret-santa-production-a76a.up.railway.app/api'
 };
