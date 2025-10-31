@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Secret Santa - Manual Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f8f9fa;
+        }
+        .test-section {
+            background: white;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-case {
+            border-left: 4px solid #c41e3a;
+            padding: 1rem;
+            margin: 1rem 0;
+            background: #f9f9f9;
+        }
+        .pass { border-left-color: #2e7d32; }
+        .fail { border-left-color: #d32f2f; }
+        .pending { border-left-color: #ffd700; }
+        button {
+            background: #c41e3a;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0.25rem;
+        }
+        button:hover { background: #8b1538; }
+        input { margin: 0.25rem; padding: 0.5rem; }
+        .results { margin-top: 1rem; padding: 1rem; background: #e8f5e8; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🎄 Secret Santa - Manual Test Suite</h1>
+    <p>This page provides manual testing scenarios for the core user flows of the Secret Santa Exchange Platform.</p>
+
+    <!-- Basic Functionality Tests -->
+    <div class="test-section">
+        <h2>📋 Phase 1: Basic Application Loading</h2>
+        
+        <div class="test-case pending">
+            <h3>Test 1.1: Application Loads</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Open <a href="../index.html" target="_blank">index.html</a> in browser</li>
+                <li>Verify page loads without JavaScript errors</li>
+                <li>Check that Christmas theme is visible</li>
+                <li>Confirm navigation menu is present</li>
+            </ol>
+            <p><strong>Expected:</strong> App loads with festive Christmas theme, no console errors</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending">
+            <h3>Test 1.2: Navigation Works</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Click on different navigation links</li>
+                <li>Verify URL hash changes</li>
+                <li>Check that content updates for each route</li>
+            </ol>
+            <p><strong>Expected:</strong> Client-side routing works, content changes per route</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending">
+            <h3>Test 1.3: Christmas Effects</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Verify Christmas color scheme is applied</li>
+                <li>Check for snow animation (on desktop)</li>
+                <li>Confirm festive greeting appears</li>
+            </ol>
+            <p><strong>Expected:</strong> Christmas theme is fully applied with animations</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+    </div>
+
+    <!-- User Story 1: Admin Creates Exchange -->
+    <div class="test-section">
+        <h2>🎅 User Story 1: Admin Creates Exchange</h2>
+        
+        <div class="test-case pending">
+            <h3>Test 2.1: Admin Registration</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Navigate to registration page</li>
+                <li>Fill out registration form</li>
+                <li>Complete registration as admin user</li>
+                <li>Verify admin menu appears</li>
+            </ol>
+            <p><strong>Expected:</strong> Admin can register and see admin-only menu items</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+            <div class="results" style="display:none;"></div>
+        </div>
+
+        <div class="test-case pending">
+            <h3>Test 2.2: Create Exchange</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Access admin dashboard</li>
+                <li>Click "Create New Exchange"</li>
+                <li>Fill form: Name="Office Holiday Party 2025", Budget="$25"</li>
+                <li>Save exchange</li>
+                <li>Verify exchange appears in listings</li>
+            </ol>
+            <p><strong>Expected:</strong> Exchange is created and visible to participants</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+    </div>
+
+    <!-- User Story 2: User Registration and Participation -->
+    <div class="test-section">
+        <h2>🎁 User Story 2: User Registration and Participation</h2>
+        
+        <div class="test-case pending">
+            <h3>Test 3.1: User Registration</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Navigate to registration page</li>
+                <li>Enter name, email, and wish list</li>
+                <li>Complete registration</li>
+                <li>Verify user can browse exchanges</li>
+            </ol>
+            <p><strong>Expected:</strong> User registration works, can access exchange listings</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending">
+            <h3>Test 3.2: Join Exchange</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>View available exchanges</li>
+                <li>Click "Join" on an exchange</li>
+                <li>Confirm participation</li>
+                <li>Verify user is added to participants list</li>
+            </ol>
+            <p><strong>Expected:</strong> User can join exchange and receive confirmation</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+    </div>
+
+    <!-- User Story 3: Gift Assignment -->
+    <div class="test-section">
+        <h2>🎯 User Story 3: Automatic Gift Assignment</h2>
+        
+        <div class="test-case pending">
+            <h3>Test 4.1: Generate Assignments</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Ensure at least 3 users have joined exchange</li>
+                <li>As admin, trigger "Generate Assignments"</li>
+                <li>Verify assignments are created</li>
+                <li>Check no self-assignments exist</li>
+            </ol>
+            <p><strong>Expected:</strong> Assignments generated, everyone gives and receives once</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+
+        <div class="test-case pending">
+            <h3>Test 4.2: View Assignment</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Login as participant</li>
+                <li>Navigate to dashboard</li>
+                <li>View assigned recipient</li>
+                <li>Check recipient's wish list is visible</li>
+            </ol>
+            <p><strong>Expected:</strong> Participant can see their gift recipient and preferences</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+    </div>
+
+    <!-- Mobile and Responsive Tests -->
+    <div class="test-section">
+        <h2>📱 Responsive Design Tests</h2>
+        
+        <div class="test-case pending">
+            <h3>Test 5.1: Mobile Layout</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Resize browser to mobile size (< 768px)</li>
+                <li>Test navigation menu</li>
+                <li>Verify forms are usable</li>
+                <li>Check all buttons are accessible</li>
+            </ol>
+            <p><strong>Expected:</strong> Mobile layout works properly, all features accessible</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+    </div>
+
+    <!-- GitHub Pages Deployment -->
+    <div class="test-section">
+        <h2>🚀 Deployment Tests</h2>
+        
+        <div class="test-case pending">
+            <h3>Test 6.1: Local Development</h3>
+            <p><strong>Steps:</strong></p>
+            <ol>
+                <li>Open index.html directly in browser</li>
+                <li>Test all functionality works</li>
+                <li>Verify data persists in localStorage</li>
+            </ol>
+            <p><strong>Expected:</strong> App works identically to server environment</p>
+            <button onclick="markTest(this, 'pass')">✅ Pass</button>
+            <button onclick="markTest(this, 'fail')">❌ Fail</button>
+        </div>
+    </div>
+
+    <!-- Test Summary -->
+    <div class="test-section">
+        <h2>📊 Test Summary</h2>
+        <div id="test-summary">
+            <p>Click the test result buttons above to track your progress.</p>
+            <p id="summary-stats">Passed: <span id="pass-count">0</span> | Failed: <span id="fail-count">0</span> | Pending: <span id="pending-count">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        function markTest(button, result) {
+            const testCase = button.closest('.test-case');
+            const resultsDiv = testCase.querySelector('.results');
+            
+            // Remove existing classes
+            testCase.classList.remove('pass', 'fail', 'pending');
+            testCase.classList.add(result);
+            
+            // Show results
+            if (resultsDiv) {
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = `<strong>Result:</strong> ${result.toUpperCase()} - ${new Date().toLocaleString()}`;
+            }
+            
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const passed = document.querySelectorAll('.test-case.pass').length;
+            const failed = document.querySelectorAll('.test-case.fail').length;
+            const pending = document.querySelectorAll('.test-case.pending').length;
+            
+            document.getElementById('pass-count').textContent = passed;
+            document.getElementById('fail-count').textContent = failed;
+            document.getElementById('pending-count').textContent = pending;
+        }
+        
+        // Initialize count
+        updateSummary();
+    </script>
+</body>
+</html>

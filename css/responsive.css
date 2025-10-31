@@ -1,0 +1,377 @@
+/* Mobile-First Responsive Design */
+
+/* Base styles are mobile-first (already in main.css) */
+
+/* Small devices (phones, 576px and up) */
+@media (min-width: 576px) {
+    .main-content {
+        padding: 2rem 1rem;
+    }
+    
+    .form-container {
+        padding: 2.5rem;
+    }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .nav-container {
+        padding: 1rem 2rem;
+    }
+    
+    .nav-links {
+        gap: 2rem;
+    }
+    
+    .main-content {
+        padding: 3rem 2rem;
+    }
+    
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    
+    .form-container {
+        max-width: 600px;
+        padding: 3rem;
+    }
+    
+    .card {
+        padding: 2rem;
+    }
+    
+    .dashboard-greeting {
+        padding: 3rem;
+    }
+    
+    .dashboard-greeting h2 {
+        font-size: 3rem;
+    }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .main-content {
+        padding: 4rem 2rem;
+    }
+    
+    .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .exchange-list {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+    
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: bold;
+        color: var(--christmas-red);
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 1.1rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .nav-container,
+    .main-content {
+        max-width: 1200px;
+    }
+    
+    .main-content {
+        padding: 4rem 3rem;
+    }
+    
+    .form-container {
+        max-width: 700px;
+        padding: 4rem;
+    }
+    
+    .exchange-list {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+}
+
+/* Mobile-specific styles (phones, up to 767px) */
+@media (max-width: 767px) {
+    /* Navigation adjustments */
+    .nav-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .nav-links {
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .logo h1 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    
+    /* Content adjustments */
+    .main-content {
+        padding: 1rem;
+    }
+    
+    /* Form adjustments */
+    .form-container {
+        margin: 1rem;
+        padding: 1.5rem;
+        max-width: none;
+    }
+    
+    /* Card adjustments */
+    .card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Button adjustments */
+    button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .nav-links button {
+        width: auto;
+        margin-bottom: 0;
+    }
+    
+    /* Exchange list mobile layout */
+    .exchange-list {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .exchange-card {
+        padding: 1rem;
+    }
+    
+    .exchange-card::after {
+        font-size: 1.2rem;
+        padding: 0.2rem;
+        top: -5px;
+        right: -5px;
+    }
+    
+    /* Dashboard mobile adjustments */
+    .dashboard-greeting {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .dashboard-greeting h2 {
+        font-size: 1.8rem;
+    }
+    
+    /* Footer adjustments */
+    .main-footer {
+        padding: 1.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .main-footer::before {
+        font-size: 0.8rem;
+        padding: 0.3rem 1rem;
+        top: -15px;
+    }
+    
+    /* Message container mobile */
+    .message-container {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+        max-width: none;
+    }
+    
+    .message-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .message-close {
+        margin-left: 0;
+    }
+    
+    /* Snow effect mobile optimization */
+    .snowflake {
+        font-size: 0.7rem;
+    }
+    
+    /* Reduce animations on mobile for performance */
+    .snow-container {
+        display: none;
+    }
+    
+    /* Table responsive behavior */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 600px;
+        font-size: 0.9rem;
+    }
+    
+    /* Admin panel mobile adjustments */
+    .admin-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .admin-controls button {
+        width: 100%;
+    }
+}
+
+/* Tablet-specific adjustments (768px to 991px) */
+@media (min-width: 768px) and (max-width: 991px) {
+    .exchange-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .nav-links {
+        gap: 1.5rem;
+    }
+    
+    .form-container {
+        max-width: 500px;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    /* Optimize for retina displays */
+    .logo h1 {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    .snowflake {
+        text-shadow: 0 0 3px rgba(255,255,255,0.6);
+    }
+}
+
+/* Landscape phone orientation */
+@media (max-width: 767px) and (orientation: landscape) {
+    .nav-container {
+        flex-direction: row;
+        padding: 0.5rem 1rem;
+    }
+    
+    .nav-links {
+        gap: 1rem;
+    }
+    
+    .main-content {
+        padding: 1rem 2rem;
+    }
+    
+    .dashboard-greeting {
+        padding: 1rem 2rem;
+    }
+    
+    .dashboard-greeting h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Print styles */
+@media print {
+    .main-header,
+    .main-footer,
+    .snow-container,
+    .message-container,
+    button {
+        display: none !important;
+    }
+    
+    .main-content {
+        margin: 0;
+        padding: 0;
+        max-width: none;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+    
+    body {
+        background: white !important;
+    }
+    
+    .christmas-message {
+        background: #f0f0f0 !important;
+        color: black !important;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .snow-container {
+        display: none !important;
+    }
+    
+    .loading .snowflake {
+        animation: none;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    /* This is a Christmas app, so we'll keep the festive colors
+       but could add dark mode support here if needed */
+    .card {
+        background: #2d2d2d;
+        color: #f0f0f0;
+    }
+    
+    .form-container {
+        background: #2d2d2d;
+        color: #f0f0f0;
+    }
+}

@@ -1,0 +1,331 @@
+/* Christmas Theme Variables */
+:root {
+    --christmas-red: #c41e3a;
+    --christmas-green: #2e7d32;
+    --christmas-gold: #ffd700;
+    --christmas-white: #ffffff;
+    --christmas-snow: #f8f9fa;
+    --christmas-dark-red: #8b1538;
+    --christmas-dark-green: #1b5e20;
+    --christmas-light-gold: #fff59d;
+}
+
+/* Christmas-themed Body Background */
+body {
+    background: linear-gradient(135deg, 
+        var(--christmas-snow) 0%, 
+        #e8f5e8 50%, 
+        var(--christmas-snow) 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Christmas Header Styling */
+.main-header {
+    background: linear-gradient(90deg, 
+        var(--christmas-red) 0%, 
+        var(--christmas-dark-red) 100%);
+    box-shadow: 0 4px 20px rgba(196, 30, 58, 0.3);
+}
+
+.main-header .nav-container {
+    color: white;
+}
+
+.main-header .logo h1 {
+    color: var(--christmas-white);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: twinkle 3s ease-in-out infinite alternate;
+}
+
+.main-header .nav-link {
+    color: var(--christmas-white);
+    transition: all 0.3s ease;
+}
+
+.main-header .nav-link:hover {
+    color: var(--christmas-gold);
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+/* Christmas Button Styles */
+button {
+    background: linear-gradient(45deg, 
+        var(--christmas-red) 0%, 
+        var(--christmas-dark-red) 100%);
+    box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255,255,255,0.2), 
+        transparent);
+    transition: left 0.5s;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button.secondary {
+    background: linear-gradient(45deg, 
+        var(--christmas-green) 0%, 
+        var(--christmas-dark-green) 100%);
+}
+
+/* Christmas Card Styling */
+.card {
+    background: var(--christmas-white);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    background: linear-gradient(45deg, 
+        var(--christmas-red), 
+        var(--christmas-gold), 
+        var(--christmas-green));
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    -webkit-mask-composite: xor;
+    z-index: -1;
+}
+
+.card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(196, 30, 58, 0.2);
+}
+
+/* Christmas Form Styling */
+.form-container {
+    background: var(--christmas-white);
+    border: 3px solid var(--christmas-gold);
+    box-shadow: 0 8px 30px rgba(196, 30, 58, 0.15);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    border-color: var(--christmas-red);
+    box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.1);
+}
+
+/* Snow Animation */
+.snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    color: var(--christmas-white);
+    font-size: 1rem;
+    animation: fall linear infinite;
+    text-shadow: 0 0 5px rgba(255,255,255,0.8);
+}
+
+@keyframes fall {
+    from {
+        transform: translateY(-100px) rotate(0deg);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Christmas List Styling */
+.exchange-list {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.exchange-card {
+    background: var(--christmas-white);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    border-left: 5px solid var(--christmas-red);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.exchange-card::after {
+    content: '🎁';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 2rem;
+    background: var(--christmas-gold);
+    border-radius: 50%;
+    padding: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.exchange-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(196, 30, 58, 0.2);
+    border-left-color: var(--christmas-green);
+}
+
+/* Christmas Dashboard */
+.dashboard-greeting {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, 
+        var(--christmas-red) 0%, 
+        var(--christmas-green) 100%);
+    color: var(--christmas-white);
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.dashboard-greeting h2 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Christmas Animation Effects */
+@keyframes twinkle {
+    0% { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    100% { 
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.3),
+            0 0 10px var(--christmas-gold),
+            0 0 20px var(--christmas-gold);
+    }
+}
+
+@keyframes jingle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+}
+
+.jingle-animation {
+    animation: jingle 0.5s ease-in-out;
+}
+
+/* Christmas Colors for Status */
+.status-active {
+    color: var(--christmas-green);
+    font-weight: 600;
+}
+
+.status-pending {
+    color: var(--christmas-gold);
+    font-weight: 600;
+}
+
+.status-complete {
+    color: var(--christmas-red);
+    font-weight: 600;
+}
+
+/* Festive Message Styling */
+.christmas-message {
+    background: linear-gradient(45deg, 
+        var(--christmas-green) 0%, 
+        var(--christmas-red) 100%);
+    color: var(--christmas-white);
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    margin: 1rem 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    animation: twinkle 2s ease-in-out infinite alternate;
+}
+
+/* Christmas Footer */
+.main-footer {
+    background: linear-gradient(90deg, 
+        var(--christmas-green) 0%, 
+        var(--christmas-dark-green) 100%);
+    position: relative;
+}
+
+.main-footer::before {
+    content: '🎄 ❄️ 🎁 ❄️ 🎄';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--christmas-white);
+    padding: 0.5rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive Christmas Elements */
+@media (max-width: 768px) {
+    .dashboard-greeting h2 {
+        font-size: 2rem;
+    }
+    
+    .exchange-card::after {
+        font-size: 1.5rem;
+        padding: 0.3rem;
+    }
+    
+    .snowflake {
+        font-size: 0.8rem;
+    }
+}
+
+/* Holly and Ivy Decorative Elements */
+.decorative-corner {
+    position: absolute;
+    font-size: 1.5rem;
+}
+
+.decorative-corner.top-left {
+    top: 10px;
+    left: 10px;
+}
+
+.decorative-corner.top-right {
+    top: 10px;
+    right: 10px;
+}
+
+.decorative-corner.bottom-left {
+    bottom: 10px;
+    left: 10px;
+}
+
+.decorative-corner.bottom-right {
+    bottom: 10px;
+    right: 10px;
+}

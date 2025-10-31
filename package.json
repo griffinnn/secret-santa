@@ -1,0 +1,25 @@
+{
+  "name": "secret-santa",
+  "version": "1.0.0",
+  "description": "Secret Santa Exchange Platform - Holiday Gift Exchange Made Easy",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "test": "npm run test:e2e",
+    "test:e2e": "playwright test",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "lint": "echo 'No linter configured yet'"
+  },
+  "keywords": [
+    "secret-santa",
+    "gift-exchange",
+    "holiday"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}
