@@ -1,27 +1,37 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import {
+  createUniqueId,
+  waitForLoadingToFinish,
+  waitForRoute,
+  waitForDashboardReady,
+  dismissMessageIfVisible,
+} from './helpers.js';
 
 test.describe('Basic Registration Flow', () => {
   test('should register a new user successfully', async ({ page }) => {
-    await page.goto('/#/register');
-    
-    // Wait for form to load
-    await expect(page.locator('input[name="name"]')).toBeVisible({ timeout: 5000 });
+    const id = createUniqueId();
+    const name = `Test User ${id}`;
+    const email = `test${id}@example.com`;
 
-    // Fill form with valid data
-    await page.fill('input[name="name"]', 'Test User');
-    await page.fill('input[name="email"]', 'test@example.com');
+    await page.goto('/#/register');
+    await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
+
+    await page.fill('input[name="name"]', name);
+    await page.fill('input[name="email"]', email);
     await page.fill('textarea[name="wishList"]', 'Books and coffee');
 
-    // Submit
-    await page.click('button[type="submit"]:has-text("Create Account")');
-
-    // Verify success or dashboard redirect
-    // Wait for either success message or dashboard
-    try {
-      await expect(page.locator('text=successfully')).toBeVisible({ timeout: 5000 });
-    } catch {
-      // If no success message, check if we're on dashboard
-      await expect(page.locator('button:has-text("➕ Create Exchange")')).toBeVisible({ timeout: 5000 });
-    }
+    const registrationResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/users') && response.request().method() === 'POST'
+    );
+    const autoLoginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
+    await page.locator('button[type="submit"]:has-text("Create Account")').click();
+    await registrationResponse;
+    await autoLoginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
+    await dismissMessageIfVisible(page);
   });
 });

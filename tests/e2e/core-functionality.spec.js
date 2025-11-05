@@ -1,4 +1,12 @@
 import { test, expect } from '@playwright/test';
+import {
+  waitForDashboardReady,
+  waitForLoadingToFinish,
+  waitForRoute,
+  clickDashboardTab,
+  performLogout,
+  dismissMessageIfVisible,
+} from './helpers.js';
 
 test.describe('Secret Santa Core Functionality', () => {
   
@@ -7,38 +15,53 @@ test.describe('Secret Santa Core Functionality', () => {
     const userName = `TestUser${timestamp}`;
     const userEmail = `test${timestamp}@test.com`;
 
-    // Register
+    // Register new account
     await page.goto('/#/register');
     await page.waitForLoadState('domcontentloaded');
-    
+    await waitForLoadingToFinish(page);
+
     await page.fill('input[name="name"]', userName);
     await page.fill('input[name="email"]', userEmail);
     await page.fill('textarea[name="wishList"]', 'Books and coffee');
-    
-    await page.click('button[type="submit"]:has-text("Create Account")');
-    
-    // Wait for redirect to dashboard
-    await page.waitForURL('/#/dashboard', { timeout: 15000 });
-    
-    // Verify dashboard loaded
-    await expect(page.locator('.user-dashboard')).toBeVisible({ timeout: 5000 });
-    
-    // Logout
-    await page.click('#auth-button');
-    await page.waitForTimeout(1000);
-    
-    // Login again
+
+    const registrationResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/users') && response.request().method() === 'POST'
+    );
+    await page.locator('button[type="submit"]:has-text("Create Account")').click();
+    await registrationResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
+
+    // First login
     await page.goto('/#/login');
     await page.waitForLoadState('domcontentloaded');
-    
+    await waitForLoadingToFinish(page);
     await page.fill('input[name="email"]', userEmail);
+
+    const firstLoginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
     await page.click('button[type="submit"]:has-text("Login")');
-    
-    // Wait longer and use catch in case redirect is slow
-    await page.waitForURL('/#/dashboard', { timeout: 20000 }).catch(() => {});
-    // Check if we're on dashboard or got redirected elsewhere
-    const url = page.url();
-    expect(url).toContain('dashboard');
+    await firstLoginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
+
+    // Logout
+    await performLogout(page);
+
+    // Login again to verify returning users
+    await page.goto('/#/login');
+    await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
+    await page.fill('input[name="email"]', userEmail);
+
+    const secondLoginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
+    await page.click('button[type="submit"]:has-text("Login")');
+    await secondLoginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
   });
 
   test('Create exchange flow', async ({ page }) => {
@@ -50,47 +73,62 @@ test.describe('Secret Santa Core Functionality', () => {
     // Register
     await page.goto('/#/register');
     await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
     
     await page.fill('input[name="name"]', userName);
     await page.fill('input[name="email"]', userEmail);
     await page.fill('textarea[name="wishList"]', 'Gifts');
-    await page.click('button[type="submit"]:has-text("Create Account")');
-    
-    await page.waitForURL('/#/dashboard', { timeout: 15000 });
-    await page.waitForTimeout(2000); // Wait for dashboard to fully initialize
+
+    const registrationResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/users') && response.request().method() === 'POST'
+    );
+    await page.locator('button[type="submit"]:has-text("Create Account")').click();
+    await registrationResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
+
+    await page.goto('/#/login');
+    await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
+    await page.fill('input[name="email"]', userEmail);
+
+    const loginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
+    await page.click('button[type="submit"]:has-text("Login")');
+    await loginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
     
     // Click Create Exchange tab using evaluate to trigger onclick
-    await page.evaluate(() => {
-      const createBtn = Array.from(document.querySelectorAll('button'))
-        .find(btn => btn.textContent.includes('Create Exchange'));
-      if (createBtn) createBtn.click();
-    });
-    
-    await page.waitForTimeout(1000);
-    
+    await clickDashboardTab(page, 'showCreateTab');
+
     // Wait for form
-    await expect(page.locator('input[name="name"]')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#create-exchange-form')).toBeVisible({ timeout: 5000 });
     
     // Fill form
     await page.fill('input[name="name"]', exchangeName);
     await page.fill('input[name="budget"]', '50');
     await page.fill('input[name="startDate"]', '2025-12-01');
     await page.fill('input[name="endDate"]', '2025-12-25');
-    
+
+    const createExchangeResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/exchanges') && response.request().method() === 'POST'
+    );
     await page.click('button[type="submit"]:has-text("Create Exchange")');
-    await page.waitForTimeout(2000);
+    await createExchangeResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
     
     // Switch to My Exchanges tab
-    await page.evaluate(() => {
-      const exchangesBtn = Array.from(document.querySelectorAll('button'))
-        .find(btn => btn.textContent.includes('My Exchanges'));
-      if (exchangesBtn) exchangesBtn.click();
-    });
-    
-    await page.waitForTimeout(1000);
-    
+    const exchangesRefresh = page.waitForResponse((response) =>
+      response.url().includes('/api/exchanges/user/') && response.request().method() === 'GET'
+    );
+    await clickDashboardTab(page, 'showExchangesTab');
+    await exchangesRefresh;
+
     // Verify exchange appears - use more specific selector to avoid strict mode violation
-    await expect(page.locator('h4', { hasText: exchangeName })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('h4', { hasText: exchangeName })).toBeVisible({ timeout: 10000 });
   });
 
   test('User can join exchange and creator can approve', async ({ page }) => {
@@ -104,81 +142,134 @@ test.describe('Secret Santa Core Functionality', () => {
     // CREATOR: Register and create exchange
     await page.goto('/#/register');
     await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
     await page.fill('input[name="name"]', creatorName);
     await page.fill('input[name="email"]', creatorEmail);
     await page.fill('textarea[name="wishList"]', 'Creator gifts');
-    await page.click('button[type="submit"]:has-text("Create Account")');
-    await page.waitForURL('/#/dashboard', { timeout: 15000 });
-    await page.waitForTimeout(500);
+
+    const creatorRegistrationResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/users') && response.request().method() === 'POST'
+    );
+    await page.locator('button[type="submit"]:has-text("Create Account")').click();
+    await creatorRegistrationResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
+
+    await page.goto('/#/login');
+    await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
+    await page.fill('input[name="email"]', creatorEmail);
+
+    const creatorLoginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
+    await page.click('button[type="submit"]:has-text("Login")');
+    await creatorLoginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
     
     // Create exchange
-    await page.evaluate(() => {
-      document.querySelector('button[onclick*="showCreateTab"]').click();
-    });
-    await page.waitForTimeout(300);
+    await clickDashboardTab(page, 'showCreateTab');
     await page.fill('input[name="name"]', exchangeName);
     await page.fill('input[name="budget"]', '50');
     await page.fill('input[name="startDate"]', '2025-12-01');
     await page.fill('input[name="endDate"]', '2025-12-25');
+    const creatorExchangeResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/exchanges') && response.request().method() === 'POST'
+    );
     await page.click('button[type="submit"]:has-text("Create Exchange")');
-    await page.waitForTimeout(1000);
+    await creatorExchangeResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
     
     // Logout creator
-    await page.click('#auth-button');
-    await page.waitForTimeout(500);
+    await performLogout(page);
     
     // PARTICIPANT: Register
     await page.goto('/#/register');
     await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
     await page.fill('input[name="name"]', participantName);
     await page.fill('input[name="email"]', participantEmail);
     await page.fill('textarea[name="wishList"]', 'Participant gifts');
+
+    const participantRegistrationResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/users') && response.request().method() === 'POST'
+    );
     await page.click('button[type="submit"]:has-text("Create Account")');
-    await page.waitForURL('/#/dashboard', { timeout: 15000 });
-    await page.waitForTimeout(500);
+    await participantRegistrationResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
+
+    await page.goto('/#/login');
+    await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
+    await page.fill('input[name="email"]', participantEmail);
+
+    const participantLoginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
+    await page.click('button[type="submit"]:has-text("Login")');
+    await participantLoginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
     
     // Browse exchanges
-    await page.evaluate(() => {
-      document.querySelector('button[onclick*="showBrowseTab"]').click();
-    });
-    await page.waitForTimeout(300);
+    await clickDashboardTab(page, 'showBrowseTab');
+    await expect(page.locator('.exchange-browse-card')).first().toBeVisible({ timeout: 5000 });
     
-    // Request to join
-    const requestBtn = page.locator('button:has-text("Request to Join")').first();
-    await expect(requestBtn).toBeVisible({ timeout: 5000 });
-    await requestBtn.click();
-    await page.waitForTimeout(1000);
+    // Request to join specific exchange card
+    const exchangeCard = page.locator('.exchange-browse-card', { hasText: exchangeName });
+    await expect(exchangeCard).toBeVisible({ timeout: 5000 });
+    const joinRequestResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/exchanges') && response.url().includes('/request-join') && response.request().method() === 'POST'
+    );
+    await exchangeCard.locator('button:has-text("Request to Join")').click();
+    await joinRequestResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
     
     // Verify appears in My Exchanges
-    await page.evaluate(() => {
-      document.querySelector('button[onclick*="showExchangesTab"]').click();
-    });
-    await page.waitForTimeout(500);
-    await expect(page.locator('h4', { hasText: exchangeName })).toBeVisible({ timeout: 5000 });
+    const userExchangesResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/exchanges/user/') && response.request().method() === 'GET'
+    );
+    await clickDashboardTab(page, 'showExchangesTab');
+    await userExchangesResponse;
+    await page.waitForFunction((name) => {
+      return Array.from(document.querySelectorAll('h4')).some((el) => el.textContent?.includes(name));
+    }, exchangeName, { timeout: 10000 });
+    await expect(page.locator('h4', { hasText: exchangeName })).toBeVisible({ timeout: 10000 });
     
     // Logout participant
-    await page.click('#auth-button');
-    await page.waitForTimeout(500);
+    await performLogout(page);
     
     // CREATOR: Login and approve
     await page.goto('/#/login');
     await page.waitForLoadState('domcontentloaded');
+    await waitForLoadingToFinish(page);
     await page.fill('input[name="email"]', creatorEmail);
+
+    const creatorReturnLoginResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/auth/login') && response.request().method() === 'POST'
+    );
     await page.click('button[type="submit"]:has-text("Login")');
-    await page.waitForURL('/#/dashboard', { timeout: 15000 });
-    await page.waitForTimeout(500);
+    await creatorReturnLoginResponse;
+    await waitForRoute(page, '#/dashboard');
+    await waitForDashboardReady(page);
     
     // Go to My Exchanges
-    await page.evaluate(() => {
-      document.querySelector('button[onclick*="showExchangesTab"]').click();
-    });
-    await page.waitForTimeout(500);
+    await clickDashboardTab(page, 'showExchangesTab');
     
     // Approve participant
     const approveBtn = page.locator('button:has-text("✅ Approve")').first();
     await expect(approveBtn).toBeVisible({ timeout: 5000 });
+    const approveResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/exchanges') && response.url().includes('/approve-participant') && response.request().method() === 'POST'
+    );
     await approveBtn.click();
-    await page.waitForTimeout(1000);
+    await approveResponse;
+    await waitForLoadingToFinish(page);
+    await dismissMessageIfVisible(page);
     
     // Verify participant count increased to 1 (participant was approved)
     await expect(page.locator('p:has-text("Participants: 1")')).toBeVisible({ timeout: 5000 });
