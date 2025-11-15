@@ -2,6 +2,7 @@
  * Express Server for Secret Santa API
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import usersRouter from './routes/users.js';

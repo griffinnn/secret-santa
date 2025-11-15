@@ -1,0 +1,119 @@
+[1mdiff --git a/backend/.gitignore b/backend/.gitignore[m
+[1mindex a3c1fe8..80acb37 100644[m
+[1m--- a/backend/.gitignore[m
+[1m+++ b/backend/.gitignore[m
+[36m@@ -1,5 +1,6 @@[m
+ node_modules/[m
+ database.json[m
+[32m+[m[32msecret-santa.db[m[41m[m
+ .env[m
+ *.log[m
+ .DS_Store[m
+[1mdiff --git a/backend/README.md b/backend/README.md[m
+[1mindex 06c9fdf..d6f97c4 100644[m
+[1m--- a/backend/README.md[m
+[1m+++ b/backend/README.md[m
+[36m@@ -50,3 +50,24 @@[m [mServer runs on http://localhost:3001[m
+ - `PORT` - Server port (default: 3001)[m
+ - `CORS_ORIGIN` - Allowed CORS origin (default: *)[m
+ - `NODE_ENV` - Environment (development/production)[m
+[32m+[m[32m- `DATABASE_CLIENT` - `json` (default), `sqlite`, or `postgres` to control the local data store[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m## Database CLI[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mThe backend ships with a small utility to migrate JSON data into SQLite and keep both stores in sync.[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m```bash[m[41m[m
+[32m+[m[32m# Show help[m[41m[m
+[32m+[m[32mnpm run db -- --help[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m# Export JSON database content into SQLite (cleans tables first)[m[41m[m
+[32m+[m[32mnpm run db -- export[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m# Validate JSON ↔ SQLite parity[m[41m[m
+[32m+[m[32mnpm run db -- check[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m# Sync assignments while previewing changes[m[41m[m
+[32m+[m[32mnpm run db -- sync-assignments --dry-run[m[41m[m
+[32m+[m[32m```[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mSet `DATABASE_CLIENT=sqlite` when you want the API to serve data from the generated SQLite database instead of the JSON file.[m[41m[m
+[1mdiff --git a/backend/database.js b/backend/database.js[m
+[1mindex fb8872a..4522a35 100644[m
+[1m--- a/backend/database.js[m
+[1m+++ b/backend/database.js[m
+[36m@@ -1,20 +1,50 @@[m
+ import pg from 'pg';[m
+[32m+[m[32mimport JSONDatabase from './database-json.js';[m[41m[m
+[32m+[m[32mimport SQLiteDatabase from './database-sqlite.js';[m[41m[m
+ const { Pool } = pg;[m
+ [m
+ class Database {[m
+   constructor() {[m
+[31m-    this.pool = new Pool({[m
+[31m-      connectionString: process.env.DATABASE_URL,[m
+[31m-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false[m
+[31m-    });[m
+[31m-    this.initialized = false;[m
+[32m+[m[32m    const clientPreference = (process.env.DATABASE_CLIENT || '').toLowerCase();[m[41m[m
+[32m+[m[32m    const usePostgres = !!process.env.DATABASE_URL && clientPreference !== 'json';[m[41m[m
+[32m+[m[32m    const useSQLite = !usePostgres && clientPreference === 'sqlite';[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (usePostgres) {[m[41m[m
+[32m+[m[32m      console.log('🔍 Database mode: PostgreSQL (production)');[m[41m[m
+[32m+[m[32m      this.db = {[m[41m[m
+[32m+[m[32m        pool: new Pool({[m[41m[m
+[32m+[m[32m          connectionString: process.env.DATABASE_URL,[m[41m[m
+[32m+[m[32m          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false[m[41m[m
+[32m+[m[32m        })[m[41m[m
+[32m+[m[32m      };[m[41m[m
+[32m+[m[32m      this.pool = this.db.pool;[m[41m[m
+[32m+[m[32m      this.initialized = false;[m[41m[m
+[32m+[m[32m    } else if (useSQLite) {[m[41m[m
+[32m+[m[32m      console.log('🔍 Database mode: SQLite (local)');[m[41m[m
+[32m+[m[32m      this.sqlite = new SQLiteDatabase();[m[41m[m
+[32m+[m[32m      this.pool = {[m[41m[m
+[32m+[m[32m        query: (sql, params) => this.sqlite.query(sql, params)[m[41m[m
+[32m+[m[32m      };[m[41m[m
+[32m+[m[32m      this.initialized = false;[m[41m[m
+[32m+[m[32m    } else {[m[41m[m
+[32m+[m[32m      console.log('🔍 Database mode: JSON file (local)');[m[41m[m
+[32m+[m[32m      this.db = new JSONDatabase();[m[41m[m
+[32m+[m[32m      // Redirect all calls to JSON database[m[41m[m
+[32m+[m[32m      return this.db;[m[41m[m
+[32m+[m[32m    }[m[41m[m
+   }[m
+ [m
+   async initialize() {[m
+     if (this.initialized) return;[m
+[31m-    [m
+[31m-    try {[m
+[31m-      // Create tables[m
+[32m+[m[41m[m
+[32m+[m[32m    if (this.sqlite) {[m[41m[m
+[32m+[m[32m      await this.sqlite.initialize();[m[41m[m
+[32m+[m[32m      this.initialized = true;[m[41m[m
+[32m+[m[32m      return;[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (this.pool) {[m[41m[m
+[32m+[m[32m      // PostgreSQL initialization[m[41m[m
+       await this.pool.query(`[m
+         CREATE TABLE IF NOT EXISTS users ([m
+           id TEXT PRIMARY KEY,[m
+[36m@@ -63,13 +93,10 @@[m [mclass Database {[m
+           UNIQUE(exchange_id, giver_id)[m
+         );[m
+       `);[m
+[31m-      [m
+       console.log('📚 PostgreSQL database initialized');[m
+[31m-      this.initialized = true;[m
+[31m-    } catch (error) {[m
+[31m-      console.error('Error initializing database:', error);[m
+[31m-      throw error;[m
+     }[m
+[32m+[m[41m[m
+[32m+[m[32m    this.initialized = true;[m[41m[m
+   }[m
+ [m
+   generateId() {[m

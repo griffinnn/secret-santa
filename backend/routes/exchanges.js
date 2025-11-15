@@ -71,6 +71,73 @@ router.post('/', async (req, res) => {
 });
 
 /**
+ * POST /api/exchanges/:id/generate-assignments
+ * Generate Secret Santa assignments for an exchange
+ */
+router.post('/:id/generate-assignments', async (req, res) => {
+  try {
+    const exchangeId = req.params.id;
+    const exchange = await db.getExchangeById(exchangeId);
+    if (!exchange) {
+      return res.status(404).json({ error: 'Exchange not found' });
+    }
+
+    // Get approved participants
+    const participants = await db.getParticipantsByExchangeId(exchangeId);
+    const userIds = participants.map(p => p.userId);
+
+    if (userIds.length < 3) {
+      return res.status(400).json({ error: 'At least 3 participants are required to generate assignments' });
+    }
+
+    // Prevent regenerate if already generated (simple guard)
+    if (exchange.assignmentsGenerated) {
+      return res.status(409).json({ error: 'Assignments already generated for this exchange' });
+    }
+
+    // Sattolo's algorithm to create a single cycle (derangement)
+    const recipients = [...userIds];
+    for (let i = recipients.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * i); // 0 <= j < i
+      [recipients[i], recipients[j]] = [recipients[j], recipients[i]];
+    }
+    // Ensure no fixed points; if any, do a simple swap fix pass
+    for (let i = 0; i < userIds.length; i++) {
+      if (userIds[i] === recipients[i]) {
+        const swapWith = (i + 1) % userIds.length;
+        [recipients[i], recipients[swapWith]] = [recipients[swapWith], recipients[i]];
+      }
+    }
+
+    // Persist assignments
+    const created = [];
+    for (let i = 0; i < userIds.length; i++) {
+      const giverId = userIds[i];
+      const recipientId = recipients[i];
+      if (giverId === recipientId) {
+        return res.status(500).json({ error: 'Failed to generate valid assignments, please retry' });
+      }
+      const a = await db.createAssignment({ exchangeId, giverId, recipientId });
+      created.push(a);
+    }
+
+    // Mark exchange as having generated assignments
+    await db.updateExchange(exchangeId, { assignmentsGenerated: true });
+
+    const fullExchange = await getFullExchange(exchangeId);
+    return res.status(201).json({
+      message: 'Assignments generated',
+      exchange: fullExchange,
+      assignments: created
+    });
+
+  } catch (error) {
+    console.error('Generate assignments error:', error);
+    return res.status(500).json({ error: 'Failed to generate assignments' });
+  }
+});
+
+/**
  * GET /api/exchanges/:id
  * Get exchange by ID
  */

@@ -13,30 +13,31 @@ const router = express.Router();
  */
 router.post('/', async (req, res) => {
   try {
-    const { assignments } = req.body;
-    
-    if (!Array.isArray(assignments) || assignments.length === 0) {
-      return res.status(400).json({ error: 'Assignments array is required' });
-    }
-
-    const created = [];
-    for (const assignment of assignments) {
-      const { exchangeId, giverId, recipientId } = assignment;
-      
-      if (!exchangeId || !giverId || !recipientId) {
-        return res.status(400).json({ error: 'Each assignment must have exchangeId, giverId, and recipientId' });
+    // Support both batch and single assignment payloads
+    if (Array.isArray(req.body.assignments)) {
+      const assignments = req.body.assignments;
+      if (assignments.length === 0) {
+        return res.status(400).json({ error: 'Assignments array cannot be empty' });
       }
-
-      const result = await db.createAssignment({
-        exchangeId,
-        giverId,
-        recipientId
-      });
-      
-      created.push(result);
+      const created = [];
+      for (const assignment of assignments) {
+        const { exchangeId, giverId, recipientId } = assignment;
+        if (!exchangeId || !giverId || !recipientId) {
+          return res.status(400).json({ error: 'Each assignment must have exchangeId, giverId, and recipientId' });
+        }
+        const result = await db.createAssignment({ exchangeId, giverId, recipientId });
+        created.push(result);
+      }
+      return res.status(201).json(created);
     }
 
-    res.status(201).json(created);
+    // Single assignment form { exchangeId, giverId, recipientId }
+    const { exchangeId, giverId, recipientId } = req.body;
+    if (!exchangeId || !giverId || !recipientId) {
+      return res.status(400).json({ error: 'exchangeId, giverId and recipientId are required' });
+    }
+    const created = await db.createAssignment({ exchangeId, giverId, recipientId });
+    return res.status(201).json(created);
 
   } catch (error) {
     console.error('Create assignments error:', error);
@@ -50,8 +51,43 @@ router.post('/', async (req, res) => {
  */
 router.get('/exchange/:exchangeId', async (req, res) => {
   try {
-    const assignments = await db.getAssignmentsByExchangeId(req.params.exchangeId);
-    res.json(assignments);
+    const { exchangeId } = req.params;
+    const { requesterId } = req.query;
+
+    if (!requesterId) {
+      return res.status(400).json({ error: 'requesterId query parameter is required' });
+    }
+
+    const exchange = await db.getExchangeById(exchangeId);
+    if (!exchange) {
+      return res.status(404).json({ error: 'Exchange not found' });
+    }
+
+    const requester = await db.getUserById(requesterId);
+    if (!requester) {
+      return res.status(404).json({ error: 'Requester not found' });
+    }
+
+    const isAdmin = requester.role === 'admin';
+    const isCreator = exchange.createdBy === requesterId || exchange.creatorId === requesterId;
+
+    if (isAdmin || isCreator) {
+      const assignments = await db.getAssignmentsByExchangeId(exchangeId);
+      return res.json(assignments);
+    }
+
+    const participants = await db.getParticipantsByExchangeId(exchangeId);
+    const participantIds = participants.map((participant) => participant.userId);
+    if (!participantIds.includes(requesterId)) {
+      return res.status(403).json({ error: 'Not authorized to view assignments for this exchange' });
+    }
+
+    const assignment = await db.getAssignmentForGiver(exchangeId, requesterId);
+    if (!assignment) {
+      return res.json([]);
+    }
+
+    return res.json([assignment]);
 
   } catch (error) {
     console.error('Get assignments error:', error);

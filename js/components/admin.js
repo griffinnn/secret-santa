@@ -302,7 +302,8 @@ export default class AdminComponent {
             if (!exchange) throw new Error('Exchange not found');
 
             const participants = await exchange.getParticipants();
-            const assignments = await exchange.getAssignments();
+            const requesterId = this.app.currentUser?.id;
+            const assignments = requesterId ? await exchange.getAssignments(requesterId) : [];
             const stats = await exchange.getStats();
 
             const contentArea = document.getElementById('admin-content');

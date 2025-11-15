@@ -252,8 +252,12 @@ class SecretSantaApp {
         
         console.log('🧭 Navigating to:', this.currentRoute);
         
+        // Extract base route for pattern matching (e.g., /exchange/123 -> /exchange)
+        const baseRoute = '/' + this.currentRoute.split('/').filter(p => p).slice(0, 1).join('/');
+        const checkRoute = this.currentRoute === '/' ? '/' : baseRoute;
+        
         // Check authentication for protected routes
-        if (this.protectedRoutes.has(this.currentRoute)) {
+        if (this.protectedRoutes.has(checkRoute)) {
             if (!this.auth.isAuthenticated()) {
                 this.showMessage('Please log in to access this page', 'info');
                 window.location.hash = '#/login';
@@ -261,8 +265,12 @@ class SecretSantaApp {
             }
         }
         
-        // Find and execute route handler
-        const handler = this.routes.get(this.currentRoute);
+        // Find and execute route handler - try exact match first, then base route
+        let handler = this.routes.get(this.currentRoute);
+        if (!handler && this.currentRoute !== baseRoute) {
+            handler = this.routes.get(baseRoute);
+        }
+        
         if (handler) {
             try {
                 await handler();

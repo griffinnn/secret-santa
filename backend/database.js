@@ -1,20 +1,50 @@
 import pg from 'pg';
+import JSONDatabase from './database-json.js';
+import SQLiteDatabase from './database-sqlite.js';
 const { Pool } = pg;
 
 class Database {
   constructor() {
-    this.pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
-    this.initialized = false;
+    const clientPreference = (process.env.DATABASE_CLIENT || '').toLowerCase();
+    const usePostgres = !!process.env.DATABASE_URL && clientPreference !== 'json';
+    const useSQLite = !usePostgres && clientPreference === 'sqlite';
+
+    if (usePostgres) {
+      console.log('🔍 Database mode: PostgreSQL (production)');
+      this.db = {
+        pool: new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+        })
+      };
+      this.pool = this.db.pool;
+      this.initialized = false;
+    } else if (useSQLite) {
+      console.log('🔍 Database mode: SQLite (local)');
+      this.sqlite = new SQLiteDatabase();
+      this.pool = {
+        query: (sql, params) => this.sqlite.query(sql, params)
+      };
+      this.initialized = false;
+    } else {
+      console.log('🔍 Database mode: JSON file (local)');
+      this.db = new JSONDatabase();
+      // Redirect all calls to JSON database
+      return this.db;
+    }
   }
 
   async initialize() {
     if (this.initialized) return;
-    
-    try {
-      // Create tables
+
+    if (this.sqlite) {
+      await this.sqlite.initialize();
+      this.initialized = true;
+      return;
+    }
+
+    if (this.pool) {
+      // PostgreSQL initialization
       await this.pool.query(`
         CREATE TABLE IF NOT EXISTS users (
           id TEXT PRIMARY KEY,
@@ -63,13 +93,10 @@ class Database {
           UNIQUE(exchange_id, giver_id)
         );
       `);
-      
       console.log('📚 PostgreSQL database initialized');
-      this.initialized = true;
-    } catch (error) {
-      console.error('Error initializing database:', error);
-      throw error;
     }
+
+    this.initialized = true;
   }
 
   generateId() {

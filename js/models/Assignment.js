@@ -64,14 +64,18 @@ export default class Assignment {
         }
     }
 
-    static async findById(assignmentId) {
+    static async findById(assignmentId, requesterId) {
         try {
             // Note: Storage service doesn't have getAssignmentById, 
             // so we'll search through all assignments
+            if (!requesterId) {
+                throw new Error('Requester ID is required to find assignments by exchange');
+            }
+
             const allExchanges = await storageService.getAllExchanges();
             
             for (const exchange of allExchanges) {
-                const assignments = await storageService.getAssignmentsByExchange(exchange.id);
+                const assignments = await storageService.getAssignmentsByExchange(exchange.id, requesterId);
                 const assignment = assignments.find(a => a.id === assignmentId);
                 if (assignment) {
                     return new Assignment(assignment);
@@ -85,9 +89,9 @@ export default class Assignment {
         }
     }
 
-    static async findByExchange(exchangeId) {
+    static async findByExchange(exchangeId, requesterId) {
         try {
-            const assignmentsData = await storageService.getAssignmentsByExchange(exchangeId);
+            const assignmentsData = await storageService.getAssignmentsByExchange(exchangeId, requesterId);
             return assignmentsData.map(data => new Assignment(data));
         } catch (error) {
             console.error('❌ Find assignments by exchange failed:', error);
@@ -474,9 +478,9 @@ export default class Assignment {
         }
     }
 
-    static async validateCircularAssignments(exchangeId) {
+    static async validateCircularAssignments(exchangeId, requesterId) {
         try {
-            const assignments = await Assignment.findByExchange(exchangeId);
+            const assignments = await Assignment.findByExchange(exchangeId, requesterId);
             
             if (assignments.length === 0) return true;
 

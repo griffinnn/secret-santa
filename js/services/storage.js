@@ -305,9 +305,14 @@ class StorageService {
         }
     }
 
-    async getAssignmentsByExchange(exchangeId) {
+    async getAssignmentsByExchange(exchangeId, requesterId) {
         try {
-            return await this.apiRequest(`/assignments/exchange/${exchangeId}`);
+            if (!requesterId) {
+                throw new Error('requesterId is required to fetch assignments');
+            }
+
+            const query = new URLSearchParams({ requesterId }).toString();
+            return await this.apiRequest(`/assignments/exchange/${exchangeId}?${query}`);
         } catch (error) {
             console.error('❌ Get assignments by exchange failed:', error);
             return [];

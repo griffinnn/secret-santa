@@ -50,3 +50,24 @@ Server runs on http://localhost:3001
 - `PORT` - Server port (default: 3001)
 - `CORS_ORIGIN` - Allowed CORS origin (default: *)
 - `NODE_ENV` - Environment (development/production)
+- `DATABASE_CLIENT` - `json` (default), `sqlite`, or `postgres` to control the local data store
+
+## Database CLI
+
+The backend ships with a small utility to migrate JSON data into SQLite and keep both stores in sync.
+
+```bash
+# Show help
+npm run db -- --help
+
+# Export JSON database content into SQLite (cleans tables first)
+npm run db -- export
+
+# Validate JSON ↔ SQLite parity
+npm run db -- check
+
+# Sync assignments while previewing changes
+npm run db -- sync-assignments --dry-run
+```
+
+Set `DATABASE_CLIENT=sqlite` when you want the API to serve data from the generated SQLite database instead of the JSON file.

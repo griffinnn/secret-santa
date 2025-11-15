@@ -328,50 +328,32 @@ export default class Exchange {
      */
     async generateAssignments() {
         try {
-            // Validate assignment generation
-            const validation = await validationService.validateAssignmentGeneration(this.id);
-            if (!validation.isValid) {
-                throw new Error(validation.error);
-            }
-
-            // Shuffle participants for random assignment
-            const shuffledParticipants = [...this.participants];
-            for (let i = shuffledParticipants.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffledParticipants[i], shuffledParticipants[j]] = [shuffledParticipants[j], shuffledParticipants[i]];
-            }
-
-            // Create circular assignments (each gives to next, last gives to first)
-            const assignments = [];
-            for (let i = 0; i < shuffledParticipants.length; i++) {
-                const giverId = shuffledParticipants[i];
-                const recipientId = shuffledParticipants[(i + 1) % shuffledParticipants.length];
-
-                const assignment = await storageService.createAssignment({
-                    exchangeId: this.id,
-                    giverId: giverId,
-                    recipientId: recipientId
-                });
-
-                assignments.push(assignment);
-            }
-
-            // Mark assignments as generated
+            // Call backend generation endpoint for consistency across storage backends
+            const result = await storageService.apiRequest(`/exchanges/${this.id}/generate-assignments`, {
+                method: 'POST'
+            });
             this.assignmentsGenerated = true;
+            // Update participants/pending from returned exchange snapshot if present
+            if (result.exchange) {
+                this.participants = result.exchange.participants || this.participants;
+                this.pendingParticipants = result.exchange.pendingParticipants || this.pendingParticipants;
+            }
             await this.save();
-
-            console.log(`✅ Generated ${assignments.length} assignments for ${this.name}`);
-            return assignments;
-
+            console.log(`✅ Generated ${result.assignments?.length || 0} assignments for ${this.name}`);
+            return result.assignments || [];
         } catch (error) {
             console.error('❌ Assignment generation failed:', error);
             throw error;
         }
     }
 
-    async getAssignments() {
+    async getAssignments(requesterId) {
         try {
-            const assignmentsData = await storageService.getAssignmentsByExchange(this.id);
+            if (!requesterId) {
+                throw new Error('Requester ID is required to load assignments');
+            }
+
+            const assignmentsData = await storageService.getAssignmentsByExchange(this.id, requesterId);
             
             // Import Assignment class dynamically
             const { default: Assignment } = await import('./Assignment.js');
@@ -608,7 +590,7 @@ export default class Exchange {
     async getStats() {
         try {
             const participants = await this.getParticipants();
-            const assignments = await this.getAssignments();
+            const assignmentCount = this.assignmentsGenerated ? participants.length : 0;
 
             return {
                 id: this.id,
@@ -616,7 +598,7 @@ export default class Exchange {
                 status: this.status,
                 budget: this.getFormattedBudget(),
                 participantCount: participants.length,
-                assignmentCount: assignments.length,
+                assignmentCount,
                 canAddParticipants: this.canAddParticipants(),
                 canGenerateAssignments: this.canGenerateAssignments(),
                 assignmentsGenerated: this.assignmentsGenerated,
